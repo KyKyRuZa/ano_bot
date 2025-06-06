@@ -9,9 +9,10 @@ from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, Update
+
 from config import (
-    API_TOKEN,MEDIA_ROOT,DB_CONFIG,
-    WEBHOOK_PATH,API_HOST,API_PORT,SSL_KEYFILE,SSL_CERTFILE
+    API_TOKEN, MEDIA_ROOT, DB_CONFIG,
+    WEBHOOK_PATH, API_HOST, API_PORT, SSL_KEYFILE, SSL_CERTFILE
 )
 from database.db import init_db
 from api.routes import app
@@ -27,10 +28,6 @@ logger = logging.getLogger(__name__)
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
-
-media_processor = MediaProcessor(bot, dp.pool) 
-
-webhook_manager = WebhookManager(bot)
 
 @app.post(WEBHOOK_PATH)
 async def webhook_handler(request: Request):
@@ -53,6 +50,7 @@ async def start_api_server():
         if not os.path.exists(SSL_CERTFILE):
             logger.critical(f"❌ SSL сертификат не найден: {SSL_CERTFILE}")
             raise FileNotFoundError(f"SSL cert file not found at {SSL_CERTFILE}")
+
         config = uvicorn.Config(
             app,
             host=API_HOST,
@@ -61,7 +59,7 @@ async def start_api_server():
             ssl_certfile=SSL_CERTFILE
         )
         server = uvicorn.Server(config)
-        logger.info(f"🟢 API сервер запущен на https://{API_HOST}:{API_PORT}") 
+        logger.info(f"🟢 API сервер запущен на https://{API_HOST}:{API_PORT}")    
         await server.serve()
     except Exception as e:
         logger.error(f"❌ Не удалось запустить API сервер: {e}")
@@ -77,7 +75,6 @@ async def keep_db_connection_alive(pool):
             logger.warning(f"⚠️ Проблема с БД: {e}. Пересоздание пула...")
             try:
                 pool = await asyncpg.create_pool(**DB_CONFIG)
-                dp.pool = pool
                 logger.info("♻️ Пул БД пересоздан")
             except Exception as e:
                 logger.error(f"❌ Не удалось пересоздать пул БД: {e}")
@@ -87,31 +84,37 @@ async def keep_db_connection_alive(pool):
 
 async def main():
     logger.info("🔄 Запуск бота и API сервера")
-    dp.pool = None
 
+    pool = None
     try:
-        dp.pool = await asyncpg.create_pool(**DB_CONFIG, min_size=5, max_size=20)
-        await init_db(dp.pool)
+        # Создаём пул к БД
+        pool = await asyncpg.create_pool(**DB_CONFIG, min_size=5, max_size=20)
+        await init_db(pool)
         logger.info("✅ Подключение к БД установлено")
 
-        media_processor = MediaProcessor(bot, dp.pool)
+        # Инициализируем сервисы
+        media_processor = MediaProcessor(bot, pool)
         webhook_manager = WebhookManager(bot)
 
-
+        # Регистрируем хендлеры
         dp.message.register(media_processor.process_message_media)
         dp.channel_post.register(media_processor.process_message_media)
 
+        # Получаем информацию о боте
         me = await bot.get_me()
         logger.info(f"🤖 Бот авторизован как @{me.username}")
         await webhook_manager.send_alert_to_admin(f"🟢 Бот запущен как @{me.username}")
 
+        # Настраиваем вебхук
         if not await webhook_manager.setup_webhook():
             logger.error("❌ Не удалось настроить вебхук")
             return
 
-        asyncio.create_task(keep_db_connection_alive(dp.pool))
+        # Фоновые задачи
+        asyncio.create_task(keep_db_connection_alive(pool))
         asyncio.create_task(webhook_manager.monitor_webhook())
 
+        # Запуск API сервера
         logger.info("🟢 Запуск API сервера...")
         await start_api_server()
 
@@ -120,8 +123,8 @@ async def main():
         await webhook_manager.send_alert_to_admin(f"🔥 Критическая ошибка: {e}")
     
     finally:
-        if dp.pool:
-            await dp.pool.close()
+        if pool:
+            await pool.close()
         await bot.session.close()
         logger.info("🧹 Все ресурсы освобождены")
 
