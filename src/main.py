@@ -9,6 +9,8 @@ from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, Update
+from aiogram.filters import ChatTypeFilter
+from aiogram.enums import ChatType
 
 from config import (
     API_TOKEN, MEDIA_ROOT, DB_CONFIG,
@@ -97,7 +99,7 @@ async def main():
         webhook_manager = WebhookManager(bot)
 
         # Регистрируем хендлеры
-        dp.message.register(media_processor.process_message_media)
+        dp.message.register(media_processor.process_message_media, ~ChatTypeFilter(ChatType.PRIVATE))
         dp.channel_post.register(media_processor.process_message_media)
 
         # Получаем информацию о боте
