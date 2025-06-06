@@ -99,7 +99,10 @@ async def main():
         webhook_manager = WebhookManager(bot)
 
         # Регистрируем хендлеры
-        dp.message.register(media_processor.process_message_media, ~ChatTypeFilter(ChatType.PRIVATE))
+        dp.message.register(
+            media_processor.process_message_media, 
+            ChatTypeFilter(chat_type=[ChatType.GROUP, ChatType.SUPERGROUP, ChatType.CHANNEL])
+        )
         dp.channel_post.register(media_processor.process_message_media)
 
         # Получаем информацию о боте
