@@ -9,7 +9,6 @@ from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, Update
-from aiogram.filters import ChatTypeFilter
 from aiogram.enums import ChatType
 
 from config import (
@@ -101,7 +100,7 @@ async def main():
         # Регистрируем хендлеры
         dp.message.register(
             media_processor.process_message_media, 
-            ChatTypeFilter(chat_type=[ChatType.GROUP, ChatType.SUPERGROUP, ChatType.CHANNEL])
+            lambda message: message.chat.type != ChatType.PRIVATE
         )
         dp.channel_post.register(media_processor.process_message_media)
 
