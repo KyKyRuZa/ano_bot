@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot
-from src.config import (
+from config import (
     WEBHOOK_URL, 
     WEBHOOK_PATH, 
     WEBHOOK_INTERVAL, 

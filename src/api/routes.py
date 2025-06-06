@@ -9,7 +9,7 @@ import config
 from datetime import datetime
 import json
 import ssl
-from src.config import (
+from config import (
     MEDIA_ROOT,
     WEBHOOK_HOST,
     DB_CONFIG,
