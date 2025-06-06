@@ -14,7 +14,7 @@ from config import (
     WEBHOOK_PATH,API_HOST,API_PORT,SSL_KEYFILE,SSL_CERTFILE
 )
 from database.db import init_db
-from api.api import app
+from src.api.api import app
 from src.services.media import MediaProcessor
 from src.hook.webhook import WebhookManager
 
@@ -111,7 +111,7 @@ async def main():
 
         asyncio.create_task(keep_db_connection_alive(dp.pool))
         asyncio.create_task(webhook_manager.monitor_webhook())
-        
+
         logger.info("🟢 Запуск API сервера...")
         await start_api_server()
 
