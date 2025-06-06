@@ -14,9 +14,9 @@ from config import (
     WEBHOOK_PATH,API_HOST,API_PORT,SSL_KEYFILE,SSL_CERTFILE
 )
 from database.db import init_db
-from src.api.api import app
-from src.services.media import MediaProcessor
-from src.hook.webhook import WebhookManager
+from api.routes import app
+from services.media import MediaProcessor
+from hook.webhook import WebhookManager
 
 logging.basicConfig(
     level=logging.INFO,
