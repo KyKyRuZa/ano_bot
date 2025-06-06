@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/media", StaticFiles(directory=Path("media")), name="media")
+app.mount("/uploads", StaticFiles(directory=str(MEDIA_ROOT)), name="uploads")
 pool = None
 
 @app.on_event("startup")

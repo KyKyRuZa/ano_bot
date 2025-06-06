@@ -83,7 +83,7 @@ async def keep_db_connection_alive(pool):
                 logger.error(f"❌ Не удалось пересоздать пул БД: {e}")
         await asyncio.sleep(1800)
 
-app.mount("/uploads", StaticFiles(directory=str(MEDIA_ROOT)), name="uploads")
+
 
 async def main():
     logger.info("🔄 Запуск бота и API сервера")
