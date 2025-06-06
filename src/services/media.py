@@ -6,14 +6,14 @@ from aiogram.types import Message
 import logging
 from pathlib import Path
 
-from src.config import (
+from config import (
     IMAGE_DIR, 
     VIDEO_DIR, 
     AUDIO_DIR, 
     DOCUMENT_DIR
 )
 
-from src.database.models import save_message_to_db, save_media_group_to_db
+from database.models import save_message_to_db, save_media_group_to_db
 
 media_groups: dict = defaultdict(list)
 media_group_timers: dict = {}
